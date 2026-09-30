@@ -1,64 +1,73 @@
-let Show = require('../models/show')
+const Estudiante = require('../models/show')
+
+function responderError(res, error) {
+  if (error.name === 'ValidationError' || error.name === 'CastError') {
+    return res.status(400).json({ mensaje: error.message })
+  }
+  return res.status(500).json({ mensaje: 'Error interno del servidor' })
+}
 
 const controller = {
-  getShows: function (req, res) {
-    Show.find({}).exec()
-      .then(showsList => {
-        if (!showsList) return res.status(404).send({message: "No data found"})
-        return res.status(200).json(showsList)
-      })
-      .catch(err => res.status(500).send({message: `Error: ${err}`}))
-  },
-  getShow: function (req, res) {
-    let showId = req.params.id
-    if (showId == null) return res.status(404).send({message: "show not found"})
-
-    Show.findById(showId).exec()
-      .then(data => {
-        if (!data) return res.status(404).send({message: "Show not found"})
-        return res.status(200).json(data)
-      })
-      .catch(err => res.status(500).send({message: `Internal error-> ${err}`}))
-  },
-  saveShow: function (req, res) {
-    let show = new Show()
-    const {name, episodes, cast} = req.body
-    if (name && episodes) {
-      show.name = name
-      show.episodes = episodes
-      show.cast = null
-      
-      show.save()
-        .then(storedShow => {
-          storedShow
-            ? res.status(200).json({show: storedShow})
-            : res.status(404).send({message: "Error saving the document"})
-        })
-        .catch(error => res.status(500).send({message: "Error while saving the document"}))
-    } else {
-      return res.status(400).send({message: "Data is not right"})
+  obtenerEstudiantes: async function (req, res) {
+    try {
+      const estudiantes = await Estudiante.find()
+      return res.status(200).json(estudiantes)
+    } catch (error) {
+      return responderError(res, error)
     }
   },
-  updateShow: function (req, res) {
-    let showId = req.params.id
-    let update = req.body
-
-    Show.findByIdAndUpdate(showId, update, {returnDocument: 'after'})
-      .then(updatedShow => {
-        if(!updatedShow) return res.status(404).send({message: "The document does not exist"})
-        return res.status(200).send({show: updatedShow})
-      })
-      .catch(error => res.status(500).send({message: `Error while updating ${error}`}))
+  obtenerEstudiante: async function (req, res) {
+    try {
+      const estudiante = await Estudiante.findById(req.params.id)
+      if (!estudiante) return res.status(404).json({ mensaje: 'Estudiante no encontrado' })
+      return res.status(200).json(estudiante)
+    } catch (error) {
+      return responderError(res, error)
+    }
   },
-  deleteShow: function (req, res) {
-    let showId = req.params.id
+  crearEstudiante: async function (req, res) {
+    const { nombre, correo, edad } = req.body
+    if (typeof nombre !== 'string' || !nombre.trim() ||
+        typeof correo !== 'string' || !correo.trim() ||
+        edad === undefined || edad === null || edad === '') {
+      return res.status(400).json({ mensaje: 'nombre, correo y edad son obligatorios' })
+    }
 
-    Show.findByIdAndRemove(showId)
-      .then(removedShow => {
-        if (!removedShow) return res.status(404).send({message: "The show does not exist"})
-        return res.status(200).send({show: removedShow})
+    try {
+      const estudiante = await Estudiante.create({ nombre, correo, edad })
+      return res.status(201).json(estudiante)
+    } catch (error) {
+      return responderError(res, error)
+    }
+  },
+  actualizarEstudiante: async function (req, res) {
+    const cambios = {}
+    for (const campo of ['nombre', 'correo', 'edad']) {
+      if (req.body[campo] !== undefined) cambios[campo] = req.body[campo]
+    }
+    if (Object.keys(cambios).length === 0) {
+      return res.status(400).json({ mensaje: 'Envía al menos un campo para actualizar' })
+    }
+
+    try {
+      const estudiante = await Estudiante.findByIdAndUpdate(req.params.id, cambios, {
+        new: true,
+        runValidators: true
       })
-      .catch(err => res.status(500).send({message: "Error while deleting"}))
+      if (!estudiante) return res.status(404).json({ mensaje: 'Estudiante no encontrado' })
+      return res.status(200).json(estudiante)
+    } catch (error) {
+      return responderError(res, error)
+    }
+  },
+  eliminarEstudiante: async function (req, res) {
+    try {
+      const estudiante = await Estudiante.findByIdAndDelete(req.params.id)
+      if (!estudiante) return res.status(404).json({ mensaje: 'Estudiante no encontrado' })
+      return res.status(200).json({ mensaje: 'Estudiante eliminado', estudiante })
+    } catch (error) {
+      return responderError(res, error)
+    }
   }
 }
 

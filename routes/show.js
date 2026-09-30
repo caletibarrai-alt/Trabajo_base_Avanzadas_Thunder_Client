@@ -3,10 +3,10 @@ const ShowController = require('../controllers/show')
 
 const router = Router()
 
-router.get('/', ShowController.getShows)
-router.get('/:id?', ShowController.getShow)
-router.post('/save-show', ShowController.saveShow)
-router.put('/edit-show/:id?', ShowController.updateShow)
-router.delete('/delete-show/:id?', ShowController.deleteShow)
+router.get('/', ShowController.obtenerEstudiantes)
+router.get('/:id', ShowController.obtenerEstudiante)
+router.post('/', ShowController.crearEstudiante)
+router.put('/:id', ShowController.actualizarEstudiante)
+router.delete('/:id', ShowController.eliminarEstudiante)
 
 module.exports = router

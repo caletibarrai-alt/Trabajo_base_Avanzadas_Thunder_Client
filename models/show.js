@@ -1,10 +1,9 @@
-let mongoose = require('mongoose')
-let Schema = mongoose.Schema
+const mongoose = require('mongoose')
 
-let ShowSchema = Schema ({
-  name: String,
-  episodes: Number,
-  cast: [{name: String, role: String}]
+const estudianteSchema = new mongoose.Schema({
+  nombre: { type: String, required: true, trim: true },
+  correo: { type: String, required: true, trim: true },
+  edad: { type: Number, required: true }
 })
 
-module.exports = mongoose.model('Show',ShowSchema, 'show')
+module.exports = mongoose.model('Estudiante', estudianteSchema)

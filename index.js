@@ -1,13 +1,15 @@
-let mongoose = require('mongoose')
+const mongoose = require('mongoose')
 const app = require('./app')
 
-mongoose.Promise = global.Promise
-mongoose.connect('mongodb://127.0.0.1:27017/msdb')
+mongoose.connect('mongodb://127.0.0.1:27017/estudiantes_db')
   .then(() => {
-    console.log('Database connected successfully')
+    console.log('MongoDB conectado correctamente')
 
     app.listen(app.get('port'), () => {
-      console.log(`Server running at http://localhost:${app.get('port')}`)
+      console.log('Servidor activo en http://localhost:3000')
     })
   })
-  .catch(err => console.error(err))
+  .catch(error => {
+    console.error('No se pudo conectar a MongoDB:', error.message)
+    process.exit(1)
+  })
